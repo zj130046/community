@@ -4,16 +4,17 @@ import { useDisclosure, Button, Card } from "@heroui/react";
 import LoginModal from "../../components/LoginModal";
 import RegisterModal from "../../components/RegisterModal";
 import useUserStore from "../../app/store/userStore";
-import Image from "next/image";
 import { MdLogin } from "react-icons/md";
 import { PiUserCirclePlus } from "react-icons/pi";
-import CommentEditor from "../../components/commentEditor";
-import { useEffect, useState } from "react";
 import { IoMdPaperPlane } from "react-icons/io";
 import { MdOutlineDataSaverOff } from "react-icons/md";
 import { IoPricetagOutline } from "react-icons/io5";
 import { HiOutlineDocumentDuplicate } from "react-icons/hi2";
 import { Select, SelectItem } from "@heroui/react";
+import MyEditor from "@/components/editor";
+import { Input } from "@heroui/react";
+import { useState } from "react";
+import Image from "next/image";
 
 export const category = [
   { key: "recommend", label: "推荐" },
@@ -24,8 +25,8 @@ export const category = [
   { key: "android", label: "Android" },
   { key: "ios", label: "IOS" },
   { key: "database", label: "数据库" },
-  { key: "data", label: "数据解构" },
-  { key: "python", label: "python" },
+  { key: "data", label: "数据结构" },
+  { key: "python", label: "Python" },
   { key: "sentiment", label: "感悟" },
   { key: "daily", label: "日常" },
 ];
@@ -43,21 +44,6 @@ export default function About() {
   } = useDisclosure();
 
   const { user, login } = useUserStore();
-  const [comments, setComment] = useState([]);
-
-  const fetchComment = async () => {
-    try {
-      const response = await fetch("/api/comments");
-      if (!response.ok) {
-        throw new Error("error");
-      }
-      const data = await response.json();
-      console.log(data);
-      setComment(data.comments);
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -121,12 +107,12 @@ export default function About() {
   };
 
   const loginCard = (
-    <Card className="h-[500px] shadow-lg w-[870px] mb-[20px] dark:bg-gray-900 p-[22px] ">
+    <Card className="h-[500px] shadow-lg w-[870px] mb-[20px] dark:bg-gray-900 p-[22px]">
       <div className="flex flex-col items-center m-auto">
         <p className="mt-[20px] mb-[20px] text-[16.8px] text-[#B1B1B1] text-center">
           你好,请先登录！
         </p>
-        <div className="flex gap-2 mb-[20px] ">
+        <div className="flex gap-2 mb-[20px]">
           <li className="flex justify-center items-center">
             <Button
               radius="full"
@@ -154,40 +140,66 @@ export default function About() {
     </Card>
   );
 
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        console.log("FileReader result:", reader.result); // 调试信息
+        if (reader.result) {
+          setImagePreview(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    } else {
+      console.log("No file selected"); // 调试信息
+      setImagePreview(null);
+    }
+  };
+
   const loggedInCard = (
-    <div className="w-[870px] flex gap-5 shadow-lg mb-[20px] dark:bg-gray-900 p-[22px]">
-      <div className="flex flex-col items-center">
-        {user?.avatarUrl ? (
+    <Card className="min-h-[500px] w-[870px] flex gap-5 shadow-lg mb-[20px] dark:bg-gray-900 p-[22px]">
+      <Input
+        name="title"
+        label="标题"
+        variant="underlined"
+        autoComplete="off"
+      />
+      <Input
+        name="excerpt"
+        label="摘要"
+        variant="underlined"
+        autoComplete="off"
+      />
+      <MyEditor></MyEditor>
+      <label
+        htmlFor="coverUpload"
+        className="relative flex justify-center items-center h-48 w-full border-2 border-dashed border-gray-300 rounded-md cursor-pointer"
+      >
+        <input
+          type="file"
+          id="coverUpload"
+          className="absolute opacity-0 w-full h-full cursor-pointer"
+          onChange={handleFileChange}
+          accept="image/png, image/jpeg, image/webp" // 限制文件类型
+        />
+        {imagePreview ? (
           <Image
-            src={user.avatarUrl}
-            alt="示例图片"
-            width={45}
-            height={45}
-            className="w-[45px] h-[45px] cursor-pointer rounded-full "
+            src={imagePreview}
+            alt="封面预览"
+            className="h-full w-full object-cover rounded-md"
+            fill //填充
           />
         ) : (
-          <Image
-            src="/assets/20.jpg"
-            alt="示例图片"
-            width={45}
-            height={45}
-            className="w-[45px] h-[45px] cursor-pointer rounded-full "
-          />
+          <span className="text-gray-500">添加文章封面</span>
         )}
-
-        <p className="mb-[20px]">{user?.username || "未登录"}</p>
-      </div>
-      <div className="w-full">
-        <CommentEditor onCommentSubmit={fetchComment}></CommentEditor>
-      </div>
-    </div>
+      </label>
+    </Card>
   );
-
-  useEffect(() => {
-    fetchComment();
-  }, []);
-
-  console.log(comments);
 
   return (
     <div className="flex max-w-[1170px] m-auto justify-between">
@@ -215,25 +227,19 @@ export default function About() {
               isEnabled: false,
             }}
           >
-            {category.map((animal) => (
-              <SelectItem key={animal.key}>{animal.label}</SelectItem>
+            {category.map((cat) => (
+              <SelectItem key={cat.key}>{cat.label}</SelectItem>
             ))}
           </Select>
         </div>
         <div className="mb-[14px]">
-          <Select
-            className="max-w-xs"
+          <Input
+            name="tag"
             label="标签"
-            placeholder="请选择标签"
-            startContent={<IoPricetagOutline />}
-            scrollShadowProps={{
-              isEnabled: false,
-            }}
-          >
-            {category.map((animal) => (
-              <SelectItem key={animal.key}>{animal.label}</SelectItem>
-            ))}
-          </Select>
+            startContent={<IoPricetagOutline className="h-[20px]" />}
+            autoComplete="off"
+            placeholder="请输入标签"
+          />
         </div>
         <Button color="success" className="text-[#fff] mb-[14px]">
           <MdOutlineDataSaverOff />

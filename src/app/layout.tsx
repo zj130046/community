@@ -135,10 +135,6 @@ export default function RootLayout({
               <Link href="/community">社区</Link>
             </li>
             <li className="flex justify-center items-center gap-1 text-[#4E5358]  hover:text-pink-500 p-4 rounded dark:hover:bg-gray-700 transition-colors duration-[3000ms]">
-              <BiBarChartAlt />
-              <Link href="/categories">分类</Link>
-            </li>
-            <li className="flex justify-center items-center gap-1 text-[#4E5358]  hover:text-pink-500 p-4 rounded dark:hover:bg-gray-700 transition-colors duration-[3000ms]">
               <BiLabel />
               <Link href="/comment">留言板</Link>
             </li>
