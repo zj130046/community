@@ -1,5 +1,4 @@
-// src/app/api/articles/submit/route.ts
-import pool from "@/lib/db"; // 假设你有一个数据库连接池
+import pool from "@/lib/db"; // 引入数据库连接池
 
 // 自动生成slug
 function generateSlug(title: string) {

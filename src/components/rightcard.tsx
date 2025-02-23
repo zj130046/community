@@ -5,6 +5,7 @@ import { FcAlarmClock, FcPieChart } from "react-icons/fc";
 import Link from "next/link";
 import { IoPricetagOutline } from "react-icons/io5";
 import dayjs from "dayjs";
+import { FcBarChart } from "react-icons/fc";
 import { WiTime8 } from "react-icons/wi";
 import { tags, Article } from "../app/store/message";
 import { Image } from "@heroui/react";
@@ -355,7 +356,7 @@ export default function RightCard() {
 
       <Card className="w-[280px] shadow-lg h-[440px] mb-[20px] dark:bg-gray-900 opacity-98 p-[10px]">
         <div className="mb-[15px] flex justify-center border-b border-solid pb-[5px]">
-          <FcPieChart className="h-[24px] leading-[24px] text-2xl" />
+          <FcBarChart className="h-[24px] leading-[24px] text-2xl mr-2" />
 
           <p className="text-[#333333] text-[17px]">最新文章</p>
         </div>

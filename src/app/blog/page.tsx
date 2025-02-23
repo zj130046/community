@@ -1,8 +1,7 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useDisclosure, Button, Card } from "@heroui/react";
-import LoginModal from "../../components/LoginModal";
-import RegisterModal from "../../components/RegisterModal";
 import useUserStore from "../../app/store/userStore";
 import { MdLogin } from "react-icons/md";
 import { PiUserCirclePlus } from "react-icons/pi";
@@ -13,10 +12,18 @@ import { HiOutlineDocumentDuplicate } from "react-icons/hi2";
 import { Select, SelectItem } from "@heroui/react";
 import MyEditor from "@/components/editor";
 import { Input } from "@heroui/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+const LoginModal = dynamic(() => import("../../components/LoginModal"), {
+  ssr: false,
+});
+
+// 动态导入 RegisterModal 组件，禁用 SSR
+const RegisterModal = dynamic(() => import("../../components/RegisterModal"), {
+  ssr: false,
+});
 import Image from "next/image";
 
-export const category = [
+export const categories = [
   { key: "recommend", label: "推荐" },
   { key: "front", label: "前端" },
   { key: "backend", label: "后端" },
@@ -42,8 +49,15 @@ export default function About() {
     onOpen: onRegisterOpen,
     onOpenChange: onRegisterOpenChange,
   } = useDisclosure();
-
+  const [isSubmitted, setIsSubmitted] = useState(false); // 标记文章是否已提交
   const { user, login } = useUserStore();
+  const [title, setTitle] = useState("");
+  const [excerpt, setExcerpt] = useState("");
+  const [content, setContent] = useState("");
+  const [category, setCategory] = useState("");
+  const [tag, setTag] = useState("");
+  const [img, setImg] = useState("");
+  const [file, setFile] = useState(null);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -69,7 +83,7 @@ export default function About() {
         login(data);
         onLoginOpenChange(false);
       } else {
-        console.error("登录失败:", data.message);
+        alert(data.message);
       }
     } catch (error) {
       console.error("登录请求出错:", error);
@@ -103,6 +117,145 @@ export default function About() {
       }
     } catch (error) {
       console.error("注册请求出错:", error);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFile(file);
+      setImg(URL.createObjectURL(file)); // 预览图片
+    }
+  };
+
+  const uploadFile = async () => {
+    if (!file) {
+      alert("请先选择文件");
+      return null;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const result = await response.json();
+      if (response.ok) {
+        return result.url; // 返回文件 URL
+      } else {
+        console.error("文件上传失败:", result.message);
+        return null;
+      }
+    } catch (error) {
+      console.error("文件上传出错:", error);
+      return null;
+    }
+  };
+
+  const handleSubmit = async () => {
+    let imageUrl = img;
+
+    // 如果用户上传了新文件，则上传文件并获取新的 URL
+    if (file) {
+      imageUrl = await uploadFile();
+      if (!imageUrl) return;
+    }
+
+    // 如果既没有新文件，也没有已有图片 URL，提示用户选择文件
+    if (!imageUrl) {
+      alert("请选择文件");
+      return;
+    }
+
+    // 提交数据
+    const data = { title, excerpt, content, category, tag, img: imageUrl };
+    const response = await fetch("/api/articles/submit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    const result = await response.json();
+    if (response.ok) {
+      console.log("文章提交成功:", result);
+
+      // 删除草稿
+      await deleteDraft();
+
+      // 标记文章已提交
+      setIsSubmitted(true);
+    } else {
+      console.error("文章提交失败:", result.message);
+    }
+  };
+
+  const deleteDraft = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("未找到 JWT，请重新登录");
+      return;
+    }
+    try {
+      const response = await fetch("/api/articles/draft", {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const result = await response.json();
+      if (response.ok) {
+        console.log("草稿删除成功:", result);
+        setTitle("");
+        setExcerpt("");
+        setContent("");
+        setCategory("");
+        setTag("");
+        setImg("");
+      } else {
+        console.error("草稿删除失败:", result.message);
+      }
+    } catch (error) {
+      console.error("草稿删除出错:", error);
+    }
+  };
+
+  const handleDraft = async () => {
+    let imageUrl = img; // 使用当前图片 URL
+    if (file) {
+      imageUrl = await uploadFile();
+      if (!imageUrl) return; // 如果上传失败，直接返回
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("未找到 JWT，请重新登录");
+      return;
+    }
+    // 如果既没有新文件，也没有已有图片 URL，提示用户选择文件
+    if (!imageUrl) {
+      alert("请选择文件");
+      return;
+    }
+
+    // 保存草稿
+    const data = { title, excerpt, content, category, tag, img: imageUrl };
+    const response = await fetch("/api/articles/draft", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    const result = await response.json();
+    if (response.ok) {
+      console.log("草稿保存成功:", result);
+    } else {
+      console.error("草稿保存失败:", result.message);
     }
   };
 
@@ -140,42 +293,29 @@ export default function About() {
     </Card>
   );
 
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        console.log("FileReader result:", reader.result); // 调试信息
-        if (reader.result) {
-          setImagePreview(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
-    } else {
-      console.log("No file selected"); // 调试信息
-      setImagePreview(null);
-    }
-  };
-
   const loggedInCard = (
     <Card className="min-h-[500px] w-[870px] flex gap-5 shadow-lg mb-[20px] dark:bg-gray-900 p-[22px]">
       <Input
         name="title"
         label="标题"
+        value={title}
         variant="underlined"
         autoComplete="off"
+        onChange={(e) => setTitle(e.target.value)}
       />
       <Input
         name="excerpt"
         label="摘要"
+        value={excerpt}
         variant="underlined"
         autoComplete="off"
+        onChange={(e) => setExcerpt(e.target.value)}
       />
-      <MyEditor></MyEditor>
+      <MyEditor
+        // 通过 key 强制重新渲染
+        defaultContent={content}
+        onChange={(html) => setContent(html)}
+      />
       <label
         htmlFor="coverUpload"
         className="relative flex justify-center items-center h-48 w-full border-2 border-dashed border-gray-300 rounded-md cursor-pointer"
@@ -185,14 +325,14 @@ export default function About() {
           id="coverUpload"
           className="absolute opacity-0 w-full h-full cursor-pointer"
           onChange={handleFileChange}
-          accept="image/png, image/jpeg, image/webp" // 限制文件类型
+          accept="image/png, image/jpeg, image/webp"
         />
-        {imagePreview ? (
+        {img ? (
           <Image
-            src={imagePreview}
+            src={img}
             alt="封面预览"
+            fill
             className="h-full w-full object-cover rounded-md"
-            fill //填充
           />
         ) : (
           <span className="text-gray-500">添加文章封面</span>
@@ -200,6 +340,42 @@ export default function About() {
       </label>
     </Card>
   );
+
+  const fetchDraft = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("未找到 JWT，请重新登录");
+        return;
+      }
+      const response = await fetch("/api/articles/draft", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const result = await response.json();
+      console.log("草稿数据:", result);
+      if (response.ok) {
+        setTitle(result.title);
+        setExcerpt(result.excerpt);
+        setContent(result.content);
+        setCategory(result.category);
+        setTag(result.tag);
+        setImg(result.img);
+      }
+    } catch (error) {
+      console.error("获取草稿出错:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.username && !isSubmitted) {
+      // 如果文章未提交，才获取草稿
+      fetchDraft();
+    }
+  }, [user?.username, isSubmitted]);
 
   return (
     <div className="flex max-w-[1170px] m-auto justify-between">
@@ -222,12 +398,14 @@ export default function About() {
             className="max-w-xs"
             label="分类"
             placeholder="请选择分类"
+            selectedKeys={[category]} // 使用 selectedKeys 设置选中项
+            onSelectionChange={(keys) => setCategory(Array.from(keys)[0])} // 处理选中项变化
             startContent={<HiOutlineDocumentDuplicate />}
             scrollShadowProps={{
               isEnabled: false,
             }}
           >
-            {category.map((cat) => (
+            {categories.map((cat) => (
               <SelectItem key={cat.key}>{cat.label}</SelectItem>
             ))}
           </Select>
@@ -236,16 +414,22 @@ export default function About() {
           <Input
             name="tag"
             label="标签"
+            value={tag}
+            onChange={(e) => setTag(e.target.value)}
             startContent={<IoPricetagOutline className="h-[20px]" />}
             autoComplete="off"
             placeholder="请输入标签"
           />
         </div>
-        <Button color="success" className="text-[#fff] mb-[14px]">
+        <Button
+          color="success"
+          className="text-[#fff] mb-[14px]"
+          onClick={handleDraft}
+        >
           <MdOutlineDataSaverOff />
           保存草稿
         </Button>
-        <Button color="primary">
+        <Button color="primary" onClick={handleSubmit}>
           <IoMdPaperPlane />
           提交发布
         </Button>

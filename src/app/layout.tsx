@@ -4,7 +4,7 @@ import "../../styles/globals.css";
 import Image from "next/image";
 import { IoIosSearch } from "react-icons/io";
 import { HiOutlineHome } from "react-icons/hi2";
-import { BiListUl, BiLabel, BiBarChartAlt } from "react-icons/bi";
+import { BiListUl, BiLabel } from "react-icons/bi";
 import { AiOutlineUser } from "react-icons/ai";
 import { FaRegMoon } from "react-icons/fa";
 import { useState, useEffect } from "react";
@@ -71,11 +71,11 @@ export default function RootLayout({
 
       const data = await response.json();
       if (response.ok) {
-        console.log("登录成功:", data);
+        alert("登录成功");
         login(data);
         onLoginOpenChange(false);
       } else {
-        console.error("登录失败:", data.message);
+        alert("登录失败:", data.message);
       }
     } catch (error) {
       console.error("登录请求出错:", error);

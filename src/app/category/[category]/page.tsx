@@ -12,7 +12,6 @@ import { Image } from "@heroui/react";
 import { useParams } from "next/navigation";
 
 export default function Category() {
-  //   const [catelist, setArticlesList] = useState<Article[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [catelist, setCateList] = useState([]);
   const pageSize = 5;
@@ -26,7 +25,6 @@ export default function Category() {
           throw new Error("error");
         }
         const data = await response.json();
-        console.log(data);
         setCateList(data);
       } catch (error) {
         console.error(error);
