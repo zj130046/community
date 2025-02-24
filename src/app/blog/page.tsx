@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useDisclosure, Button, Card } from "@heroui/react";
 import useUserStore from "../../app/store/userStore";
 import { MdLogin } from "react-icons/md";
@@ -13,15 +12,16 @@ import { Select, SelectItem } from "@heroui/react";
 import MyEditor from "@/components/editor";
 import { Input } from "@heroui/react";
 import { useState, useEffect } from "react";
+import Image from "next/image";
+import dynamic from "next/dynamic";
+
 const LoginModal = dynamic(() => import("../../components/LoginModal"), {
   ssr: false,
 });
 
-// 动态导入 RegisterModal 组件，禁用 SSR
 const RegisterModal = dynamic(() => import("../../components/RegisterModal"), {
   ssr: false,
 });
-import Image from "next/image";
 
 export const categories = [
   { key: "recommend", label: "推荐" },
@@ -133,10 +133,8 @@ export default function About() {
       alert("请先选择文件");
       return null;
     }
-
     const formData = new FormData();
     formData.append("file", file);
-
     try {
       const response = await fetch("/api/upload", {
         method: "POST",
@@ -157,35 +155,36 @@ export default function About() {
 
   const handleSubmit = async () => {
     let imageUrl = img;
-
     // 如果用户上传了新文件，则上传文件并获取新的 URL
     if (file) {
       imageUrl = await uploadFile();
       if (!imageUrl) return;
     }
-
     // 如果既没有新文件，也没有已有图片 URL，提示用户选择文件
     if (!imageUrl) {
       alert("请选择文件");
       return;
     }
-
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("未找到 JWT，请重新登录");
+      return;
+    }
     // 提交数据
     const data = { title, excerpt, content, category, tag, img: imageUrl };
     const response = await fetch("/api/articles/submit", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });
     const result = await response.json();
     if (response.ok) {
       console.log("文章提交成功:", result);
-
       // 删除草稿
       await deleteDraft();
-
       // 标记文章已提交
       setIsSubmitted(true);
     } else {
@@ -260,7 +259,7 @@ export default function About() {
   };
 
   const loginCard = (
-    <Card className="h-[500px] shadow-lg w-[870px] mb-[20px] dark:bg-gray-900 p-[22px]">
+    <Card className="h-[500px] shadow-lg w-[840px] mb-[20px] dark:bg-gray-900 p-[22px]">
       <div className="flex flex-col items-center m-auto">
         <p className="mt-[20px] mb-[20px] text-[16.8px] text-[#B1B1B1] text-center">
           你好,请先登录！
@@ -294,7 +293,7 @@ export default function About() {
   );
 
   const loggedInCard = (
-    <Card className="min-h-[500px] w-[870px] flex gap-5 shadow-lg mb-[20px] dark:bg-gray-900 p-[22px]">
+    <Card className="min-h-[500px] w-[840px] flex gap-5 shadow-lg mb-[20px] dark:bg-gray-900 p-[22px]">
       <Input
         name="title"
         label="标题"
@@ -312,13 +311,12 @@ export default function About() {
         onChange={(e) => setExcerpt(e.target.value)}
       />
       <MyEditor
-        // 通过 key 强制重新渲染
         defaultContent={content}
         onChange={(html) => setContent(html)}
       />
       <label
         htmlFor="coverUpload"
-        className="relative flex justify-center items-center h-48 w-full border-2 border-dashed border-gray-300 rounded-md cursor-pointer"
+        className="relative flex justify-center items-center h-32 w-full border-2 border-dashed border-gray-300 rounded-md cursor-pointer"
       >
         <input
           type="file"
@@ -378,7 +376,7 @@ export default function About() {
   }, [user?.username, isSubmitted]);
 
   return (
-    <div className="flex max-w-[1170px] m-auto justify-between">
+    <div className="flex max-w-[1150px] m-auto justify-between">
       {user?.username ? loggedInCard : loginCard}
       <LoginModal
         isOpen={isLoginOpen}
@@ -398,8 +396,8 @@ export default function About() {
             className="max-w-xs"
             label="分类"
             placeholder="请选择分类"
-            selectedKeys={[category]} // 使用 selectedKeys 设置选中项
-            onSelectionChange={(keys) => setCategory(Array.from(keys)[0])} // 处理选中项变化
+            selectedKeys={[category]}
+            onSelectionChange={(keys) => setCategory(Array.from(keys)[0])}
             startContent={<HiOutlineDocumentDuplicate />}
             scrollShadowProps={{
               isEnabled: false,

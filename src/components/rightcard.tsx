@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { FcAlarmClock, FcPieChart } from "react-icons/fc";
+import { FcAlarmClock } from "react-icons/fc";
 import Link from "next/link";
 import { IoPricetagOutline } from "react-icons/io5";
 import dayjs from "dayjs";
@@ -53,9 +53,6 @@ export default function RightCard() {
   const [articlesLatest, setArticlesLatest] = useState<Article[]>([]);
   const [commentsList, setCommentsList] = useState([]);
   const { user, login } = useUserStore();
-  // const [articleTotal, setArticleTotal] = useState(0);
-  // const [categoryTotal, setCategoryTotal] = useState(0);
-  // const [tagTotal, setTagTotal] = useState(0);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();

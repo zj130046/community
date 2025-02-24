@@ -50,7 +50,7 @@ export default function MyEditor(props: IRichTextProps) {
         onCreated={setEditor}
         onChange={handleChange}
         mode="default"
-        className="min-h-[200px]"
+        className="min-h-[150px]"
       />
     </div>
   );

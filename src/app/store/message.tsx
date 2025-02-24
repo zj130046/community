@@ -47,6 +47,40 @@ export interface Article {
   word_count: number;
 }
 
+export interface Blog {
+  id: number;
+  avatar_url: string;
+  content: string;
+  username: string;
+  created_at: string;
+  img: string;
+  like_count: number;
+}
+
+export interface Comment {
+  userId: number;
+  avatarurl: string;
+  content: string;
+  username: string;
+  created_at: string;
+}
+
+export const navItems = [
+  { label: "全部", href: "/category" },
+  { label: "推荐", href: "/category/recommend" },
+  { label: "前端", href: "/category/front" },
+  { label: "后端", href: "/category/backend" },
+  { label: "AI", href: "/category/ai" },
+  { label: "笔记", href: "/category/note" },
+  { label: "Android", href: "/category/android" },
+  { label: "IOS", href: "/category/ios" },
+  { label: "数据库", href: "/category/database" },
+  { label: "数据结构", href: "/category/data" },
+  { label: "python", href: "/category/python" },
+  { label: "感悟", href: "/category/sentiment" },
+  { label: "日常", href: "/category/daily" },
+];
+
 export const markdownContent = `
 ## 关于我
 

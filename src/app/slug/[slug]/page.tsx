@@ -28,7 +28,7 @@ const ArticleDetails = () => {
   const cleanContent = DOMPurify.sanitize(article.content);
 
   return (
-    <div className="flex w-[1170px] m-auto items-start justify-between">
+    <div className="flex w-[1150px] m-auto items-start justify-between">
       <div>
         <Card className="p-[20px] w-[840px] shadow-lg flex justify-center flex-col mb-[22px] dark:bg-gray-900 opacity-98">
           <div className="prose prose-lg dark:prose-invert max-w-[840px] w-full">

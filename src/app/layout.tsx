@@ -10,11 +10,19 @@ import { FaRegMoon } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { GoChevronUp, GoChevronDown, GoSun } from "react-icons/go";
 import Link from "next/link";
-import LoginModal from "../components/LoginModal";
-import RegisterModal from "../components/RegisterModal";
 import useUserStore from "./store/userStore";
 import CustomDropdown from "../components/customDropdown";
 import { Button, useDisclosure } from "@heroui/react";
+
+import dynamic from "next/dynamic";
+
+const LoginModal = dynamic(() => import("../components/LoginModal"), {
+  ssr: false,
+});
+
+const RegisterModal = dynamic(() => import("../components/RegisterModal"), {
+  ssr: false,
+});
 
 export default function RootLayout({
   children,

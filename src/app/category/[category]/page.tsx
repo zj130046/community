@@ -10,10 +10,11 @@ import { PiNoteThin } from "react-icons/pi";
 import { TbChevronRight, TbChevronsRight, TbChevronLeft } from "react-icons/tb";
 import { Image } from "@heroui/react";
 import { useParams } from "next/navigation";
+import { Article } from "@/app/store/message";
 
 export default function Category() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [catelist, setCateList] = useState([]);
+  const [catelist, setCateList] = useState<Article[]>([]);
   const pageSize = 5;
   const { category } = useParams();
 

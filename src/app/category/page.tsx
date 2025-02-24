@@ -50,17 +50,15 @@ export default function Category() {
           className="w-[840px] shadow-lg flex justify-center flex-col mb-[26px] dark:bg-gray-900 opacity-98"
         >
           <div className="flex justify-center flex-col">
-            <div className="w-full h-[180px] mb-[10px] overflow-hidden group">
+            <div className="w-full h-[180px] mb-[10px]">
               <Image
                 isZoomed
                 src={article.img}
                 alt="示例图片"
                 width={900}
                 height={180}
-                className="top-rounded-image w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-110"
               />
             </div>
-
             <div className="pl-[25px] pr-[25px]">
               <p className="text-center text-[25px] text-[#00DDDD]">
                 <Link href={`/slug/${article.slug}`}>{article.title}</Link>

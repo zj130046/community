@@ -1,4 +1,3 @@
-// pages/api/comments/[userId].ts （使用动态路由）
 import { NextRequest, NextResponse } from "next/server";
 import pool from "../../../../lib/db";
 

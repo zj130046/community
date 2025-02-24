@@ -29,7 +29,7 @@ export default function Carousel() {
     fetchArticle();
   }, []);
   return (
-    <div className="relative w-full max-w-[1170px] mx-auto mb-[40px]">
+    <div className="relative w-full max-w-[1150px] mx-auto mb-[40px]">
       <Swiper
         modules={[Navigation, Pagination, Autoplay]}
         spaceBetween={0} // 图片之间的间距

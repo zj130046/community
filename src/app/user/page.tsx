@@ -212,7 +212,7 @@ export default function About() {
   }, []);
 
   return (
-    <div className="flex max-w-[1170px] m-auto justify-between flex-col">
+    <div className="flex max-w-[1150px] m-auto justify-between flex-col">
       <Card className="w-full shadow-lg flex mb-[20px] h-[400px] dark:bg-gray-600 opacity-98">
         <div className="w-full h-[300px] gradient-bg relative"></div>
         <Image

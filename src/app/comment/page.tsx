@@ -1,8 +1,6 @@
 "use client";
 
 import { useDisclosure, Button, Card } from "@heroui/react";
-import LoginModal from "../../components/LoginModal";
-import RegisterModal from "../../components/RegisterModal";
 import useUserStore from "../../app/store/userStore";
 import Image from "next/image";
 import { MdLogin } from "react-icons/md";
@@ -10,6 +8,16 @@ import { PiUserCirclePlus } from "react-icons/pi";
 import CommentEditor from "../../components/commentEditor";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
+import dynamic from "next/dynamic";
+import { Comment } from "../store/message";
+
+const LoginModal = dynamic(() => import("../../components/LoginModal"), {
+  ssr: false,
+});
+
+const RegisterModal = dynamic(() => import("../../components/RegisterModal"), {
+  ssr: false,
+});
 
 export default function About() {
   const {
@@ -24,7 +32,7 @@ export default function About() {
   } = useDisclosure();
 
   const { user, login } = useUserStore();
-  const [comments, setComment] = useState([]);
+  const [comments, setComment] = useState<Comment[]>([]);
 
   const fetchComment = async () => {
     try {
@@ -168,10 +176,8 @@ export default function About() {
     fetchComment();
   }, []);
 
-  console.log(comments);
-
   return (
-    <div className="flex max-w-[1170px] m-auto items-start justify-between">
+    <div className="flex max-w-[1150px] m-auto items-start justify-between">
       <Card className="w-full shadow-lg p-[15px] flex items-center flex-col h-[2000px] dark:bg-gray-900 opacity-98">
         {user?.username ? loggedInCard : loginCard}
         <LoginModal
