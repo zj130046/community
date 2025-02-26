@@ -10,17 +10,21 @@ import { FaRegMoon } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { GoChevronUp, GoChevronDown, GoSun } from "react-icons/go";
 import Link from "next/link";
+import useSearchStore from "./store/searchStore";
 import useUserStore from "./store/userStore";
-import CustomDropdown from "../components/customDropdown";
-import { Button, useDisclosure } from "@heroui/react";
-
+import { Button, useDisclosure, Input } from "@heroui/react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 
 const LoginModal = dynamic(() => import("../components/LoginModal"), {
   ssr: false,
 });
 
 const RegisterModal = dynamic(() => import("../components/RegisterModal"), {
+  ssr: false,
+});
+
+const CustomDropdown = dynamic(() => import("../components/customDropdown"), {
   ssr: false,
 });
 
@@ -41,21 +45,35 @@ export default function RootLayout({
   } = useDisclosure();
   const [darkMode, setDarkMode] = useState(false);
   const { token, login } = useUserStore();
+  const { fetchResults } = useSearchStore();
+  const [keyword, setKeyword] = useState("");
+  const router = useRouter();
 
   const toggleDarkMode = () => {
     setDarkMode((prevMode) => !prevMode);
   };
 
+  const handleSearch = async () => {
+    if (keyword.length === 0) {
+      return;
+    }
+    router.push(`/search/${keyword}`);
+    await fetchResults(keyword);
+    setKeyword("");
+  };
+
   useEffect(() => {
-    document.documentElement.setAttribute(
-      "data-theme",
-      darkMode ? "dark" : "light"
-    );
-    const bodyElement = document.body;
-    if (darkMode) {
-      bodyElement.style.backgroundImage = 'url("/assets/13.jpg")';
-    } else {
-      bodyElement.style.backgroundImage = 'url("/assets/7.png")';
+    if (typeof window !== "undefined") {
+      document.documentElement.setAttribute(
+        "data-theme",
+        darkMode ? "dark" : "light"
+      );
+      const bodyElement = document.body;
+      if (darkMode) {
+        bodyElement.style.backgroundImage = 'url("/assets/29.png")';
+      } else {
+        bodyElement.style.backgroundImage = 'url("/assets/7.png")';
+      }
     }
   }, [darkMode]);
 
@@ -110,7 +128,7 @@ export default function RootLayout({
 
       const data = await response.json();
       if (response.ok) {
-        console.log("注册成功:", data);
+        alert("注册成功");
         onRegisterOpenChange(false);
       } else {
         console.error("注册失败:", data.message);
@@ -123,36 +141,45 @@ export default function RootLayout({
   return (
     <html lang="zh" data-theme={darkMode ? "dark" : "light"}>
       <body className="transition-colors duration-[1000ms] bg-white text-black dark:bg-gray-900 dark:text-white">
-        <nav className="bg-white/90 sticky top-0 flex justify-center h-[67px] dark:bg-gray-900 dark:text-white transition-colors duration-[3000ms] z-50">
-          <div className="flex justify-around gap-1 items-center mr-[100px]">
-            <Image src="/assets/1.png" alt="示例图片" width={50} height={28} />
+        <nav className="bg-[white] sticky top-0 flex justify-center h-[67px] dark:bg-gray-900 dark:text-white z-50">
+          <div className="flex justify-center items-center mr-[100px]">
             <Image
               src="/assets/image.png"
               alt="示例图片"
-              width={50}
-              height={28}
+              width={85}
+              height={40}
+              className="w-[85px] h-[40px]"
             />
           </div>
-          <ul className="flex cursor-pointer mr-[280px]">
-            <li className="flex justify-center items-center gap-1 text-[#4E5358]  hover:text-pink-500 p-4 rounded dark:hover:bg-gray-700 transition-colors duration-[3000ms]">
+          <ul className="flex cursor-pointer mr-[260px]">
+            <li className="flex justify-center items-center gap-1 text-[#4E5358]  hover:text-pink-500 p-4 rounded transition-colors duration-[3000ms]">
               <HiOutlineHome />
               <Link href="/">首页</Link>
             </li>
-            <li className="flex justify-center items-center gap-1 text-[#4E5358]  hover:text-pink-500 p-4 rounded dark:hover:bg-gray-700 transition-colors duration-[3000ms]">
+            <li className="flex justify-center items-center gap-1 text-[#4E5358]  hover:text-pink-500 p-4 rounded transition-colors duration-[3000ms]">
               <BiListUl />
               <Link href="/community">社区</Link>
             </li>
-            <li className="flex justify-center items-center gap-1 text-[#4E5358]  hover:text-pink-500 p-4 rounded dark:hover:bg-gray-700 transition-colors duration-[3000ms]">
+            <li className="flex justify-center items-center gap-1 text-[#4E5358]  hover:text-pink-500 p-4 rounded transition-colors duration-[3000ms]">
               <BiLabel />
               <Link href="/comment">留言板</Link>
             </li>
-            <li className="flex justify-center items-center gap-1 text-[#4E5358]  hover:text-pink-500 p-4 rounded dark:hover:bg-gray-700 transition-colors duration-[3000ms]">
+            <li className="flex justify-center items-center gap-1 text-[#4E5358]  hover:text-pink-500 p-4 rounded transition-colors duration-[3000ms] mr-[60px]">
               <AiOutlineUser />
               <Link href="/about">关于</Link>
             </li>
-            <li className="flex justify-center items-center gap-1 text-[#4E5358]  hover:text-pink-500 p-4 rounded dark:hover:bg-gray-700 transition-colors duration-[3000ms]">
-              <IoIosSearch />
-              <span>搜索</span>
+            <li className="flex justify-center items-center gap-1 text-[#4E5358]  hover:text-pink-500 p-4 rounded transition-colors duration-[3000ms]">
+              <Input
+                autoComplete="off"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                endContent={
+                  <IoIosSearch
+                    className="cursor-pointer  text-2xl text-default-400 flex-shrink-0"
+                    onClick={handleSearch}
+                  />
+                }
+              />
             </li>
           </ul>
           <ul className="flex gap-2">

@@ -43,7 +43,6 @@ body {
 
 body {
   font-family: "Arial", sans-serif;
-  /* background-image: url("../public/assets/7.png"); */
   background-repeat: no-repeat; /* 背景图不重复 */
   background-size: cover; /* 背景图覆盖整个元素 */
   background-position: center;

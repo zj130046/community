@@ -1,20 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Image } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { IoMdPaperPlane } from "react-icons/io";
 import dynamic from "next/dynamic";
-import { useDisclosure, Button, Card } from "@heroui/react";
+import { useDisclosure, Button, Card, Image } from "@heroui/react";
 import useUserStore from "../../app/store/userStore";
 import { MdLogin } from "react-icons/md";
 import { PiUserCirclePlus } from "react-icons/pi";
 import dayjs from "dayjs";
-import { BiLike } from "react-icons/bi";
 import DOMPurify from "dompurify";
-import { LuMessageSquare } from "react-icons/lu";
-import { Badge } from "@heroui/react";
+import Link from "next/link";
+// import { LuMessageSquare } from "react-icons/lu";
 import { Blog } from "../store/message";
+import { BiMessageDetail, BiLike } from "react-icons/bi";
 const MyEditor = dynamic(() => import("@/components/editor"), {
   ssr: false,
 });
@@ -40,7 +39,7 @@ export default function About() {
   } = useDisclosure();
 
   const router = useRouter();
-  const { user, login } = useUserStore();
+  const { user, login, token } = useUserStore();
   const [content, setContent] = useState("");
   const [img, setImg] = useState("");
   const [file, setFile] = useState(null);
@@ -66,7 +65,7 @@ export default function About() {
 
       const data = await response.json();
       if (response.ok) {
-        console.log("登录成功:", data);
+        alert("登录成功");
         login(data);
         onLoginOpenChange(false);
       } else {
@@ -94,13 +93,11 @@ export default function About() {
         },
         body: JSON.stringify(formDataObj),
       });
-
-      const data = await response.json();
       if (response.ok) {
-        console.log("注册成功:", data);
+        alert("注册成功");
         onRegisterOpenChange(false);
       } else {
-        console.error("注册失败:", data.message);
+        alert("注册失败");
       }
     } catch (error) {
       console.error("注册请求出错:", error);
@@ -148,12 +145,6 @@ export default function About() {
       if (!imageUrl) return;
     }
 
-    if (!imageUrl) {
-      alert("请选择文件");
-      return;
-    }
-
-    const token = localStorage.getItem("token");
     if (!token) {
       console.error("未找到 JWT，请重新登录");
       return;
@@ -177,17 +168,16 @@ export default function About() {
     setImg("");
     const result = await response.json();
     if (response.ok) {
-      alert("文章提交成功");
+      alert("帖子发布并成功");
       fetchBlogs();
     } else {
-      console.error("文章提交失败:", result.message);
+      alert(result.message);
     }
   };
 
   const handleLike = async (id) => {
-    console.log(id);
     try {
-      const response = await fetch(`/api/like/${id}`, {
+      const response = await fetch(`/api/blog/like/${id}`, {
         method: "POST",
       });
       if (!response.ok) {
@@ -217,7 +207,7 @@ export default function About() {
   }, []);
 
   const loginCard = (
-    <Card className="h-[500px] shadow-lg w-full mb-[20px] dark:bg-gray-900 p-[22px]">
+    <Card className="h-[500px] shadow-lg w-full mb-[12px] dark:bg-gray-900 p-[22px]">
       <div className="flex flex-col items-center m-auto">
         <p className="mt-[20px] mb-[20px] text-[16.8px] text-[#B1B1B1] text-center">
           你好,请先登录！
@@ -251,7 +241,7 @@ export default function About() {
   );
 
   const loggedInCard = (
-    <Card className="p-[16px] w-full shadow-lg flex items-center flex-col min-h-[200px] mb-[22px] dark:bg-gray-900 opacity-98">
+    <Card className="p-[16px] w-full shadow-lg flex items-center flex-col min-h-[200px] mb-[12px] dark:bg-gray-900 opacity-98">
       <MyEditor
         defaultContent={content}
         onChange={(html) => setContent(html)}
@@ -296,19 +286,19 @@ export default function About() {
         {blogs.map((blog, index) => (
           <Card
             key={index}
-            className="cursor-pointer p-[24px] w-[730px] shadow-lg flex mb-[26px] dark:bg-gray-900 opacity-98"
+            className="cursor-pointer p-[24px] w-[730px] shadow-lg flex mb-[8px] dark:bg-gray-900 opacity-98"
           >
             <div className="flex justify-center flex-col">
               <div className="flex">
-                <div>
+                <Link href={`/blog/${blog.slug}`}>
                   <Image
-                    src={blog.avatar_url}
+                    src={blog.avatar_url || "/assets/20.jpg"}
                     alt="示例图片"
                     width={45}
                     height={45}
                     className="rounded-full"
                   />
-                </div>
+                </Link>
                 <div className="flex flex-col ml-4">
                   <p className="text-[14px]">{blog.username}</p>
                   <p className="text-[#999AAA] text-[12px]">
@@ -316,27 +306,42 @@ export default function About() {
                   </p>
                 </div>
               </div>
-              <div
-                className="flex ml-14 mb-5 text-[16px]"
+              <Link
+                href={`/blog/${blog.slug}`}
+                className="pl-14 pr-14 pb-2"
                 dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(blog.content),
+                  __html: DOMPurify.sanitize(
+                    blog.content.length > 400
+                      ? blog.content.slice(0, 400)
+                      : blog.content
+                  ),
                 }}
-              ></div>
+              ></Link>
 
-              <div className="w-full h-[180px] mb-[10px] pr-14 pl-14">
-                <Image src={blog.img} alt="示例图片" width={900} height={180} />
+              <div className="w-full max-h-[180px] mb-[10px] pr-14 pl-14">
+                {blog.img ? (
+                  <Image
+                    src={blog.img}
+                    alt="示例图片"
+                    width={900}
+                    height={180}
+                  />
+                ) : (
+                  ""
+                )}
               </div>
               <div className="flex justify-around">
-                <Badge color="danger" content={blog.like_count} size="sm">
+                <div className="flex justify-around">
                   <BiLike
-                    className="text-[22px]"
+                    className="text-[22px] text-[#999999] mr-2"
                     onClick={() => handleLike(blog.id)}
                   />
-                </Badge>
-
-                <Badge color="danger" content="5" size="sm">
-                  <LuMessageSquare className="text-[22px]" />
-                </Badge>
+                  <p className="text-[#999999]">{blog.like_count}</p>
+                </div>
+                <div className="flex justify-around items-center">
+                  <BiMessageDetail className="text-[22px] text-[#999999] mr-2" />
+                  <p className="text-[#999999]">{blog.like_count}</p>
+                </div>
               </div>
             </div>
           </Card>

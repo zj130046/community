@@ -1,15 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { FcAlarmClock } from "react-icons/fc";
 import Link from "next/link";
 import { IoPricetagOutline } from "react-icons/io5";
 import dayjs from "dayjs";
-import { FcBarChart } from "react-icons/fc";
+import { FcBarChart, FcAlarmClock } from "react-icons/fc";
 import { WiTime8 } from "react-icons/wi";
-import { tags, Article } from "../app/store/message";
-import { Image } from "@heroui/react";
-import { useDisclosure, Button, Tooltip, Card } from "@heroui/react";
+import { tags, Article, NewComment } from "../app/store/message";
+import { Image, useDisclosure, Button, Tooltip, Card } from "@heroui/react";
 import LoginModal from "../components/LoginModal";
 import RegisterModal from "../components/RegisterModal";
 import { RiArticleLine } from "react-icons/ri";
@@ -51,7 +49,7 @@ export default function RightCard() {
   const [index, setIndex] = useState(0);
 
   const [articlesLatest, setArticlesLatest] = useState<Article[]>([]);
-  const [commentsList, setCommentsList] = useState([]);
+  const [commentsList, setCommentsList] = useState<NewComment[]>([]);
   const { user, login } = useUserStore();
 
   const handleLoginSubmit = async (e) => {
@@ -118,7 +116,7 @@ export default function RightCard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [commentRes, articleRes, totalRes] = await Promise.all([
+        const [commentRes, articleRes] = await Promise.all([
           fetch("/api/comments/latest").then((res) => res.json()),
           fetch("/api/articles/latest").then((res) => res.json()),
           fetch("/api/articles/all").then((res) => res.json()),
@@ -363,7 +361,7 @@ export default function RightCard() {
             <div key={index} className="flex justify-between mb-[10px]">
               <Link
                 className="w-[90px] h-[65px] relative overflow-hidden group"
-                href={`/${article.slug}`}
+                href={`/article/${article.slug}`}
               >
                 <Image
                   src={article.img}
@@ -376,7 +374,7 @@ export default function RightCard() {
               </Link>
               <div className="w-[160px] flex flex-col min-h-[65px] justify-between">
                 <div className="text-[#4E5358] text-[14px] hover:text-pink-500">
-                  <Link href={`/${article.slug}`}>{article.title}</Link>
+                  <Link href={`/article/${article.slug}`}>{article.title}</Link>
                 </div>
                 <div className="text-[#B1B1B1] text-[12px] flex">
                   <WiTime8 className="h-[18px] mr-[2px]" />
@@ -407,23 +405,13 @@ export default function RightCard() {
               <div className="flex justify-between">
                 <div>
                   <div className="flex items-center mb-[5px]">
-                    {comment.avatar_url ? (
-                      <Image
-                        src={comment.avatar_url}
-                        alt="评论用户头像"
-                        width={45}
-                        height={45}
-                        className="w-[45px] h-[45px] cursor-pointer rounded-full mr-[18px]"
-                      />
-                    ) : (
-                      <Image
-                        src="/assets/20.jpg"
-                        alt="默认头像"
-                        width={45}
-                        height={45}
-                        className="w-[45px] h-[45px] cursor-pointer rounded-full mr-[18px]"
-                      />
-                    )}
+                    <Image
+                      src={comment.avatar_url || "/assets/20.jpg"}
+                      alt="评论用户头像"
+                      width={45}
+                      height={45}
+                      className="w-[45px] h-[45px] cursor-pointer rounded-full mr-[18px]"
+                    />
 
                     <p className="ml-[5px] text-[14px] text-[#262626] mr-[4px]">
                       {comment.username}

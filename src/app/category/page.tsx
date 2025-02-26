@@ -2,14 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Card } from "@heroui/react";
 import dayjs from "dayjs";
 import { LuToyBrick } from "react-icons/lu";
-import { PiTag } from "react-icons/pi";
-import { PiNoteThin } from "react-icons/pi";
+import { PiNoteThin, PiTag } from "react-icons/pi";
 import { TbChevronRight, TbChevronsRight, TbChevronLeft } from "react-icons/tb";
 import { Article } from "../store/message";
-import { Image } from "@heroui/react";
+import { Image, Card } from "@heroui/react";
 
 interface Response {
   articles: Article[];
@@ -61,7 +59,7 @@ export default function Category() {
             </div>
             <div className="pl-[25px] pr-[25px]">
               <p className="text-center text-[25px] text-[#00DDDD]">
-                <Link href={`/slug/${article.slug}`}>{article.title}</Link>
+                <Link href={`/article/${article.slug}`}>{article.title}</Link>
               </p>
               <div className="text-[12px] flex justify-center mb-[15px]">
                 <div className="flex justify-center mr-2 text-[#00A7E0] ">
@@ -91,7 +89,7 @@ export default function Category() {
               </div>
 
               <p className="text-center hover:bg-red-400 text-[13px] bg-[#97DFFD] w-[100px] mb-[25px] m-auto h-[28px] leading-[28px] rounded-[5px]">
-                <Link href={`/slug/${article.slug}`}>了解更多</Link>
+                <Link href={`/article/${article.slug}`}>了解更多</Link>
               </p>
             </div>
           </div>

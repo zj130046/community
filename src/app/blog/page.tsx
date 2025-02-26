@@ -1,19 +1,20 @@
 "use client";
 
-import { useDisclosure, Button, Card } from "@heroui/react";
+import { Button, Card, Select, SelectItem, Input } from "@heroui/react";
+
+import { useDisclosure } from "@heroui/react";
+
 import useUserStore from "../../app/store/userStore";
-import { MdLogin } from "react-icons/md";
 import { PiUserCirclePlus } from "react-icons/pi";
 import { IoMdPaperPlane } from "react-icons/io";
-import { MdOutlineDataSaverOff } from "react-icons/md";
+import { MdOutlineDataSaverOff, MdLogin } from "react-icons/md";
 import { IoPricetagOutline } from "react-icons/io5";
 import { HiOutlineDocumentDuplicate } from "react-icons/hi2";
-import { Select, SelectItem } from "@heroui/react";
 import MyEditor from "@/components/editor";
-import { Input } from "@heroui/react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
+import { categories } from "../store/message";
 
 const LoginModal = dynamic(() => import("../../components/LoginModal"), {
   ssr: false,
@@ -22,21 +23,6 @@ const LoginModal = dynamic(() => import("../../components/LoginModal"), {
 const RegisterModal = dynamic(() => import("../../components/RegisterModal"), {
   ssr: false,
 });
-
-export const categories = [
-  { key: "recommend", label: "推荐" },
-  { key: "front", label: "前端" },
-  { key: "backend", label: "后端" },
-  { key: "ai", label: "AI" },
-  { key: "note", label: "笔记" },
-  { key: "android", label: "Android" },
-  { key: "ios", label: "IOS" },
-  { key: "database", label: "数据库" },
-  { key: "data", label: "数据结构" },
-  { key: "python", label: "Python" },
-  { key: "sentiment", label: "感悟" },
-  { key: "daily", label: "日常" },
-];
 
 export default function About() {
   const {
@@ -50,7 +36,7 @@ export default function About() {
     onOpenChange: onRegisterOpenChange,
   } = useDisclosure();
   const [isSubmitted, setIsSubmitted] = useState(false); // 标记文章是否已提交
-  const { user, login } = useUserStore();
+  const { user, login, token } = useUserStore();
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [content, setContent] = useState("");
@@ -162,10 +148,9 @@ export default function About() {
     }
     // 如果既没有新文件，也没有已有图片 URL，提示用户选择文件
     if (!imageUrl) {
-      alert("请选择文件");
+      alert("请选择图片");
       return;
     }
-    const token = localStorage.getItem("token");
     if (!token) {
       console.error("未找到 JWT，请重新登录");
       return;
@@ -182,10 +167,8 @@ export default function About() {
     });
     const result = await response.json();
     if (response.ok) {
-      console.log("文章提交成功:", result);
-      // 删除草稿
+      alert("文章提交成功");
       await deleteDraft();
-      // 标记文章已提交
       setIsSubmitted(true);
     } else {
       console.error("文章提交失败:", result.message);
@@ -193,7 +176,6 @@ export default function About() {
   };
 
   const deleteDraft = async () => {
-    const token = localStorage.getItem("token");
     if (!token) {
       console.error("未找到 JWT，请重新登录");
       return;
@@ -229,7 +211,6 @@ export default function About() {
       if (!imageUrl) return; // 如果上传失败，直接返回
     }
 
-    const token = localStorage.getItem("token");
     if (!token) {
       console.error("未找到 JWT，请重新登录");
       return;
@@ -240,7 +221,6 @@ export default function About() {
       return;
     }
 
-    // 保存草稿
     const data = { title, excerpt, content, category, tag, img: imageUrl };
     const response = await fetch("/api/articles/draft", {
       method: "POST",
@@ -252,7 +232,7 @@ export default function About() {
     });
     const result = await response.json();
     if (response.ok) {
-      console.log("草稿保存成功:", result);
+      alert("草稿保存成功");
     } else {
       console.error("草稿保存失败:", result.message);
     }
@@ -341,7 +321,6 @@ export default function About() {
 
   const fetchDraft = async () => {
     try {
-      const token = localStorage.getItem("token");
       if (!token) {
         console.error("未找到 JWT，请重新登录");
         return;
@@ -354,7 +333,6 @@ export default function About() {
         },
       });
       const result = await response.json();
-      console.log("草稿数据:", result);
       if (response.ok) {
         setTitle(result.title);
         setExcerpt(result.excerpt);

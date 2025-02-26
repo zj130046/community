@@ -1,6 +1,5 @@
 "use client";
 
-import { useDisclosure, Button, Card } from "@heroui/react";
 import useUserStore from "../../app/store/userStore";
 import Image from "next/image";
 import { MdLogin } from "react-icons/md";
@@ -9,7 +8,10 @@ import CommentEditor from "../../components/commentEditor";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import dynamic from "next/dynamic";
+import { useDisclosure, Button, Card } from "@heroui/react";
 import { Comment } from "../store/message";
+import { BiLike } from "react-icons/bi";
+import { LuMessageSquare } from "react-icons/lu";
 
 const LoginModal = dynamic(() => import("../../components/LoginModal"), {
   ssr: false,
@@ -41,7 +43,6 @@ export default function About() {
         throw new Error("error");
       }
       const data = await response.json();
-      console.log(data);
       setComment(data.comments);
     } catch (error) {
       console.error(error);
@@ -109,6 +110,20 @@ export default function About() {
     }
   };
 
+  const handleLike = async (id) => {
+    try {
+      const response = await fetch(`/api/comments/like/${id}`, {
+        method: "POST",
+      });
+      if (!response.ok) {
+        throw new Error("点赞失败");
+      }
+      fetchComment();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const loginCard = (
     <Card className="w-full shadow-lg h-[180px] mb-[20px] bg-[#74747414] dark:bg-gray-900 p-[22px]">
       <div className="flex flex-col items-center">
@@ -145,7 +160,7 @@ export default function About() {
 
   const loggedInCard = (
     <div className="w-full flex gap-5 shadow-lg mb-[20px] dark:bg-gray-900 p-[22px]">
-      <div className="flex flex-col items-center">
+      <div className="w-[45px] flex flex-col items-center">
         {user?.avatarUrl ? (
           <Image
             src={user.avatarUrl}
@@ -196,36 +211,36 @@ export default function About() {
           <p className="text-[18px] text-[#1A1A1A] mb-[5px]">评论列表</p>
           {comments.map((comment, index) => (
             <div
-              className="flex w-full justify-between border-b-1 pt-4 pb-4"
+              className="flex w-full justify-between border-b-1 pt-4 pb-4 cursor-pointer"
               key={comment.userId || index}
             >
-              <div className="flex justify-center items-center">
-                {comment.avatarurl ? (
-                  <Image
-                    src={comment.avatarurl}
-                    alt="评论用户头像"
-                    width={45}
-                    height={45}
-                    className="w-[45px] h-[45px] cursor-pointer rounded-full mr-[18px]"
-                  />
-                ) : (
-                  <Image
-                    src="/assets/20.jpg"
-                    alt="默认头像"
-                    width={45}
-                    height={45}
-                    className="w-[45px] h-[45px] cursor-pointer rounded-full mr-[18px]"
-                  />
-                )}
+              <div className=" flex justify-center items-center">
+                <Image
+                  src={comment.avatar_url || "/assets/20.jpg"}
+                  alt="评论用户头像"
+                  width={45}
+                  height={45}
+                  className="w-[45px] h-[45px]  rounded-full mr-[18px]"
+                />
               </div>
-              <div className="flex flex-col w-full items-start ">
-                <p className="text-[15px] mb-[3px]">{comment.username}</p>
-                <p className="text-[14px] mb-[8px] text-[#4E5358]">
-                  {comment.content}
-                </p>
-                <p className="text-[14px] text-[#999999]">
-                  {dayjs(comment.created_at).format("YYYY-MM-DD")}
-                </p>
+              <div className="flex  w-full justify-between ">
+                <div>
+                  <p className="text-[15px] mb-[3px]">{comment.username}</p>
+                  <p className="text-[14px] mb-[8px] text-[#4E5358]">
+                    {comment.content}
+                  </p>
+                  <p className="text-[14px] text-[#999999]">
+                    {dayjs(comment.created_at).format("YYYY-MM-DD")}
+                  </p>
+                </div>
+
+                <div className="flex justify-around">
+                  <BiLike
+                    className="text-[22px] text-[#999999] mr-2"
+                    onClick={() => handleLike(comment.id)}
+                  />
+                  <p className="text-[#999999]">{comment.like_count}</p>
+                </div>
               </div>
             </div>
           ))}

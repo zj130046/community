@@ -4,6 +4,8 @@ import Image from "next/image";
 import useUserStore from "../store/userStore";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
+import Link from "next/link";
+import { Blog, Comment } from "../store/message";
 import {
   Modal,
   ModalContent,
@@ -18,6 +20,8 @@ import {
 } from "@heroui/react";
 import { redirect } from "next/navigation";
 import { WiTime8 } from "react-icons/wi";
+import DOMPurify from "dompurify";
+import { BiLike } from "react-icons/bi";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 10MB
 
@@ -93,7 +97,8 @@ export default function About() {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [comments, setComments] = useState([]);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [blogs, setBlogs] = useState<Blog[]>([]);
   const [selected, setSelected] = useState("评论");
   const togglePasswordVisibility = () => {
     setIsPasswordVisible(!isPasswordVisible);
@@ -117,7 +122,6 @@ export default function About() {
     const formData = new FormData();
     formData.append("avatar", newAvatar);
 
-    const token = localStorage.getItem("token");
     if (!token) {
       console.error("未找到用户令牌");
       return;
@@ -125,7 +129,6 @@ export default function About() {
 
     setIsLoading(true);
     try {
-      console.log("发送请求...");
       const response = await fetch("/api/user/avator", {
         method: "POST",
         headers: {
@@ -140,7 +143,7 @@ export default function About() {
       }
 
       const data = await response.json();
-      console.log("头像更新成功:", data.message);
+      alert("头像更新成功");
 
       // 更新头像 URL
       if (data.avatarUrl) {
@@ -196,20 +199,27 @@ export default function About() {
   }, [token]);
 
   useEffect(() => {
-    const fetchUserComment = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`/api/comments/${user?.userId}`);
-        if (!response.ok) {
-          throw new Error("error");
+        const commentResponse = await fetch(`/api/comments/${user?.userId}`);
+        if (!commentResponse.ok) {
+          throw new Error("获取评论失败");
         }
-        const data = await response.json();
-        setComments(data.comments);
+        const commentData = await commentResponse.json();
+        setComments(commentData.comments);
+
+        const blogResponse = await fetch(`/api/blog/${user?.userId}`);
+        if (!blogResponse.ok) {
+          throw new Error("获取帖子失败");
+        }
+        const blogData = await blogResponse.json();
+        setBlogs(blogData.blogs);
       } catch (error) {
         console.error(error);
       }
     };
-    fetchUserComment();
-  }, []);
+    fetchData();
+  }, [user]);
 
   return (
     <div className="flex max-w-[1150px] m-auto justify-between flex-col">
@@ -349,18 +359,19 @@ export default function About() {
               {comments.map((comment, index) => (
                 <div
                   key={index}
-                  className="flex justify-start mb-[10px] w-full hover:shadow-lg p-[10px] hover:translate-x-[-4px] transition-all duration-[1000ms]"
+                  className="min-h-[70px] flex mb-[10px] min-w-[300px] hover:shadow-lg p-[10px] hover:translate-x-[-4px] transition-all duration-[1000ms]"
                 >
-                  <div className="w-[60px] h-[60px] overflow-hidden mr-[10px]">
+                  <div className="w-[60px] h-[60px] mr-[20px]">
                     <Image
                       src={user?.avatarUrl || "/assets/20.jpg"}
                       alt="示例图片"
                       width={60}
                       height={60}
-                      className="w-full h-full rounded-full"
+                      className="w-[60px] h-[60px] rounded-full"
                     />
                   </div>
-                  <div className="w-[full flex flex-col items-start justify-center">
+
+                  <div className="flex flex-col items-start justify-center mr-[60px]">
                     <div className="text-[#4E5358] text-[14px] hover:text-pink-500">
                       <div>{comment.content}</div>
                     </div>
@@ -369,11 +380,56 @@ export default function About() {
                       <p>{dayjs(comment.created_at).format("YYYY-MM-DD")}</p>
                     </div>
                   </div>
+                  <div className="flex justify-around items-center">
+                    <BiLike className="text-[22px] text-[#999999] mr-2" />
+                    <p className="text-[#999999]">{comment.like_count}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </Tab>
-          <Tab key="帖子" title="帖子"></Tab>
+          <Tab key="帖子" title="帖子">
+            {blogs.map((blog, index) => (
+              <Link
+                href={`/blog/${blog.slug}`}
+                key={index}
+                className=" flex justify-between mb-[10px] min-w-[300px] max-w-[800px] hover:shadow-lg p-[10px] hover:translate-x-[-4px] transition-all duration-[1000ms]"
+              >
+                <div className="w-[60px] h-[60px] mr-[20px]">
+                  <Image
+                    src={user?.avatarUrl || "/assets/20.jpg"}
+                    alt="示例图片"
+                    width={60}
+                    height={60}
+                    className="w-full h-full rounded-full"
+                  />
+                </div>
+                <div className="flex flex-col items-start justify-center mr-[60px]">
+                  <div className="text-[#4E5358] text-[14px] hover:text-pink-500">
+                    <div
+                      className="text-[#4E5358] text-[14px] hover:text-pink-500 max-w-[500px]"
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(
+                          blog.content.length > 400
+                            ? blog.content.slice(0, 400)
+                            : blog.content
+                        ),
+                      }}
+                    ></div>
+                  </div>
+                  <div className="text-[#B1B1B1] text-[12px] flex">
+                    <WiTime8 className="h-[18px] mr-[2px]" />
+                    <p>{dayjs(blog.created_at).format("YYYY-MM-DD")}</p>
+                  </div>
+                </div>
+                <div className="flex justify-around items-center">
+                  <BiLike className="text-[22px] text-[#999999] mr-2" />
+                  <p className="text-[#999999]">{blog.like_count}</p>
+                </div>
+              </Link>
+            ))}
+          </Tab>
+          <Tab key="文章" title="文章"></Tab>
         </Tabs>
       </Card>
     </div>

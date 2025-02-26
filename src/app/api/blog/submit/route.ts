@@ -2,7 +2,7 @@ import pool from "@/lib/db"; // 引入数据库连接池
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken"; // 引入 JWT 库
 
-// 自动生成slug
+// 自动生成 slug
 function generateSlug(title: string): string {
   const slug = title
     .toLowerCase()
@@ -25,13 +25,23 @@ function getUserIdFromRequest(request: Request): number | null {
     if (!secret) {
       throw new Error("JWT_SECRET is not defined");
     }
-    const decoded = jwt.verify(token, secret);
+    const decoded = jwt.verify(token, secret) as { userId: number };
     return decoded.userId;
   } catch (error) {
     console.error("JWT 验证失败:", error);
     return null;
   }
 }
+
+const INSERT_BLOG_QUERY = `
+  INSERT INTO blogs (content, slug, img, user_id, username, avatar_url, created_at)
+  VALUES ($1, $2, $3, $4, $5, $6, NOW())
+  RETURNING id;
+`;
+
+const SELECT_USER_INFO_QUERY = `
+  SELECT username, avatar_url FROM users WHERE id = $1
+`;
 
 export async function POST(req: Request) {
   const userId = getUserIdFromRequest(req);
@@ -43,40 +53,39 @@ export async function POST(req: Request) {
   }
   try {
     const body = await req.json();
-    const { content, img } = body;
+    const { content, img = null } = body;
 
     // 检查必要字段
     if (!content) {
-      return new Response(
-        JSON.stringify({ message: "缺少必要字段" }),
-        { status: 400 } // 使用 `Response` 对象的 `status` 设置响应状态码
-      );
+      return new NextResponse(JSON.stringify({ message: "缺少必要字段" }), {
+        status: 400,
+      });
     }
 
     const slug = generateSlug(content);
 
     // 根据 userId 查询 username 和 avatar_url
-    const userResult = await pool.query(
-      `SELECT username, avatar_url FROM users WHERE id = $1`,
-      [userId]
-    );
-
-    const { username, avatar_url } = userResult.rows[0] || {};
-    if (!username || !avatar_url) {
-      return new Response(JSON.stringify({ message: "未找到对应的用户信息" }), {
-        status: 404,
-      });
+    const userResult = await pool.query(SELECT_USER_INFO_QUERY, [userId]);
+    if (userResult.rows.length === 0) {
+      return new NextResponse(
+        JSON.stringify({ message: "未找到对应的用户信息" }),
+        { status: 404 }
+      );
     }
 
-    const result = await pool.query(
-      `INSERT INTO blogs ( content, slug,  img, user_id, username, avatar_url, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW())
-       RETURNING id;`,
-      [content, slug, img, userId, username, avatar_url]
-    );
+    const { username, avatar_url } = userResult.rows[0];
+
+    const result = await pool.query(INSERT_BLOG_QUERY, [
+      content,
+      slug,
+      img,
+      userId,
+      username,
+      avatar_url,
+    ]);
 
     // 返回成功的响应
-    return new Response(
+    return new NextResponse(
       JSON.stringify({
         message: "文章已发布",
         blogId: result.rows[0].id,
@@ -86,7 +95,7 @@ export async function POST(req: Request) {
     );
   } catch (error) {
     console.error("发布文章失败:", error);
-    return new Response(JSON.stringify({ message: "发布文章失败" }), {
+    return new NextResponse(JSON.stringify({ message: "发布文章失败" }), {
       status: 500,
     });
   }

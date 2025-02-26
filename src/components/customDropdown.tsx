@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import Image from "next/image";
 import { LiaUserSolid } from "react-icons/lia";
@@ -16,10 +18,10 @@ import {
 
 import Link from "next/link";
 
-const CustomDropdown = () => {
+const Dropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { logout } = useUserStore();
-  const { user } = useUserStore();
+  const { logout, user } = useUserStore();
+
   const handleMouseEnter = () => {
     setIsOpen(true);
   };
@@ -116,4 +118,5 @@ const CustomDropdown = () => {
   );
 };
 
+const CustomDropdown = React.memo(Dropdown);
 export default CustomDropdown;

@@ -1,14 +1,13 @@
-"use client"; // 让组件只在客户端渲染
+"use client";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import { Image } from "@heroui/react";
 import { useEffect, useState } from "react";
 import { Article } from "../app/store/message";
-import { Card, CardHeader } from "@heroui/react";
+import { Card, CardHeader, Image } from "@heroui/react";
 import Link from "next/link";
 
 export default function Carousel() {
@@ -45,7 +44,7 @@ export default function Carousel() {
             <Link href={`/slug/${article.slug}`}>
               <Card className="col-span-12 sm:col-span-4 ">
                 <CardHeader className="absolute z-10 top-1 flex-col !items-start">
-                  <h4 className="text-white font-medium text-large">
+                  <h4 className="text-white font-medium text-[30px]">
                     {article.title}
                   </h4>
                 </CardHeader>

@@ -1,4 +1,3 @@
-// src/app/components/rich-text/index.tsx
 "use client";
 import { IDomEditor, IEditorConfig, IToolbarConfig } from "@wangeditor/editor";
 import { Editor, Toolbar } from "@wangeditor/editor-for-react";
@@ -15,6 +14,10 @@ export default function MyEditor(props: IRichTextProps) {
   const { defaultContent = "", placeholder = "请输入内容", onChange } = props;
   const [editor, setEditor] = useState<IDomEditor | null>(null);
   const [html, setHtml] = useState(defaultContent);
+
+  useEffect(() => {
+    setHtml(defaultContent); // 每次父组件传递新内容时，更新本地html状态
+  }, [defaultContent]);
 
   const toolbarConfig: Partial<IToolbarConfig> = {};
   const editorConfig: Partial<IEditorConfig> = { placeholder };

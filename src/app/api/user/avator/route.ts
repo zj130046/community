@@ -65,6 +65,11 @@ export async function POST(request: NextRequest) {
       userId,
     ]);
 
+    await pool.query("UPDATE blogs SET avatar_url = $1 WHERE user_id = $2", [
+      avatarUrl,
+      userId,
+    ]);
+
     return NextResponse.json(
       { message: "头像更新成功", avatarUrl },
       { status: 200 }

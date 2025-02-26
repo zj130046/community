@@ -1,58 +1,15 @@
 "use client";
+
 import { useState } from "react";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { $getRoot } from "lexical";
 import { Button } from "@heroui/react";
 import { RiEmotionLine } from "react-icons/ri";
 import useUserStore from "../app/store/userStore";
-
-import { $getSelection, $isRangeSelection } from "lexical";
-
-const emojiList = [
-  "😀",
-  "😂",
-  "😍",
-  "😭",
-  "👍",
-  "🔥",
-  "❤️",
-  "😎",
-  "😊",
-  "😢",
-  "😋",
-  "🥰",
-  "😄",
-  "😆",
-  "😉",
-  "🤔",
-  "🤩",
-  "🤪",
-  "😝",
-  "😏",
-  "🤤",
-  "😬",
-  "😷",
-  "🤧",
-  "🤒",
-  "🥳",
-  "😻",
-  "💪",
-  "👀",
-  "🙌",
-  "👏",
-  "🤗",
-  "🥺",
-  "🤭",
-  "😤",
-  "😵",
-  "🤠",
-  "🥴",
-  "😇",
-  "😈",
-];
+import { $getRoot, $getSelection, $isRangeSelection } from "lexical";
+import { emojiList } from "../app/store/message";
 
 const EmojiButton = () => {
   const [editor] = useLexicalComposerContext();

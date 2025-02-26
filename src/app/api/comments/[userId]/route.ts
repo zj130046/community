@@ -24,7 +24,6 @@ export async function GET(request: NextRequest) {
     // 执行 SQL 查询
     const result = await pool.query(query, [userId]);
 
-    // 获取查询结果中的评论数据
     const comments = result.rows;
 
     return NextResponse.json(
