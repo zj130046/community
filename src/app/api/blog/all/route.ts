@@ -3,7 +3,6 @@ import pool from "../../../../lib/db";
 
 export async function GET() {
   try {
-    // 修改查询，加入过滤条件 `is_published = true`
     const [articleResult, countResult] = await Promise.all([
       pool.query("SELECT * FROM blogs ORDER BY created_at DESC"),
       pool.query("SELECT COUNT(*) as total FROM blogs"),

@@ -7,26 +7,22 @@ import { HiOutlineHome } from "react-icons/hi2";
 import { BiListUl, BiLabel } from "react-icons/bi";
 import { AiOutlineUser } from "react-icons/ai";
 import { FaRegMoon } from "react-icons/fa";
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { GoChevronUp, GoChevronDown, GoSun } from "react-icons/go";
 import Link from "next/link";
 import useSearchStore from "./store/searchStore";
 import useUserStore from "./store/userStore";
 import { Button, useDisclosure, Input } from "@heroui/react";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import { handleLoginSubmit, handleRegisterSubmit } from "./utils/page";
+import debounce from "lodash/debounce";
+import Head from "next/head";
 
-const LoginModal = dynamic(() => import("../components/LoginModal"), {
-  ssr: false,
-});
+const LoginModal = lazy(() => import("./components/LoginModal"));
+const RegisterModal = lazy(() => import("./components/RegisterModal"));
+const CustomDropdown = lazy(() => import("./components/customDropdown"));
 
-const RegisterModal = dynamic(() => import("../components/RegisterModal"), {
-  ssr: false,
-});
-
-const CustomDropdown = dynamic(() => import("../components/customDropdown"), {
-  ssr: false,
-});
+const LoadingFallback = <div>Loading...</div>;
 
 export default function RootLayout({
   children,
@@ -58,9 +54,14 @@ export default function RootLayout({
       return;
     }
     router.push(`/search/${keyword}`);
-    await fetchResults(keyword);
-    setKeyword("");
+    fetchResults(keyword).then(() => {
+      setKeyword("");
+    });
   };
+
+  const handleKeywordChange = debounce((e) => {
+    setKeyword(e.target.value);
+  }, 300);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -77,72 +78,15 @@ export default function RootLayout({
     }
   }, [darkMode]);
 
-  const handleLoginSubmit = async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const formData = new FormData(form);
-    const formDataObj = {};
-    formData.forEach((value, key) => {
-      formDataObj[key] = value;
-    });
-
-    try {
-      const response = await fetch("/api/user/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formDataObj),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        alert("登录成功");
-        login(data);
-        onLoginOpenChange(false);
-      } else {
-        alert("登录失败:", data.message);
-      }
-    } catch (error) {
-      console.error("登录请求出错:", error);
-    }
-  };
-
-  const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const formData = new FormData(form);
-    const formDataObj = {};
-    formData.forEach((value, key) => {
-      formDataObj[key] = value;
-    });
-
-    try {
-      const response = await fetch("/api/user/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formDataObj),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        alert("注册成功");
-        onRegisterOpenChange(false);
-      } else {
-        console.error("注册失败:", data.message);
-      }
-    } catch (error) {
-      console.error("注册请求出错:", error);
-    }
-  };
-
   return (
     <html lang="zh" data-theme={darkMode ? "dark" : "light"}>
+      <Head>
+        <meta name="description" content="这是悠哉社区，欢迎大家使用！" />
+        <title>悠哉社区</title>
+      </Head>
       <body className="transition-colors duration-[1000ms] bg-white text-black dark:bg-gray-900 dark:text-white">
         <nav className="bg-[white] sticky top-0 flex justify-center h-[67px] dark:bg-gray-900 dark:text-white z-50">
-          <div className="flex justify-center items-center mr-[100px]">
+          <div className="flex-normal mr-[100px]">
             <Image
               src="/assets/image.png"
               alt="示例图片"
@@ -152,30 +96,30 @@ export default function RootLayout({
             />
           </div>
           <ul className="flex cursor-pointer mr-[260px]">
-            <li className="flex justify-center items-center gap-1 text-[#4E5358]  hover:text-pink-500 p-4 rounded transition-colors duration-[3000ms]">
+            <li className=" hover:text-pink-500 layout-style">
               <HiOutlineHome />
               <Link href="/">首页</Link>
             </li>
-            <li className="flex justify-center items-center gap-1 text-[#4E5358]  hover:text-pink-500 p-4 rounded transition-colors duration-[3000ms]">
+            <li className=" hover:text-pink-500 layout-style">
               <BiListUl />
               <Link href="/community">社区</Link>
             </li>
-            <li className="flex justify-center items-center gap-1 text-[#4E5358]  hover:text-pink-500 p-4 rounded transition-colors duration-[3000ms]">
+            <li className=" hover:text-pink-500 layout-style">
               <BiLabel />
               <Link href="/comment">留言板</Link>
             </li>
-            <li className="flex justify-center items-center gap-1 text-[#4E5358]  hover:text-pink-500 p-4 rounded transition-colors duration-[3000ms] mr-[60px]">
+            <li className=" hover:text-pink-500 layout-style mr-[60px]">
               <AiOutlineUser />
               <Link href="/about">关于</Link>
             </li>
-            <li className="flex justify-center items-center gap-1 text-[#4E5358]  hover:text-pink-500 p-4 rounded transition-colors duration-[3000ms]">
+            <li className=" hover:text-pink-500 layout-style">
               <Input
                 autoComplete="off"
                 value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
+                onChange={handleKeywordChange}
                 endContent={
                   <IoIosSearch
-                    className="cursor-pointer  text-2xl text-default-400 flex-shrink-0"
+                    className="cursor-pointer text-2xl text-default-400 flex-shrink-0"
                     onClick={handleSearch}
                   />
                 }
@@ -184,10 +128,12 @@ export default function RootLayout({
           </ul>
           <ul className="flex gap-2">
             {token ? (
-              <CustomDropdown></CustomDropdown>
+              <Suspense fallback={LoadingFallback}>
+                <CustomDropdown />
+              </Suspense>
             ) : (
               <>
-                <li className="flex justify-center items-center">
+                <li className="flex-normal">
                   <Button
                     className="bg-gradient-to-tr from-pink-500 to-yellow-500 text-white shadow-lg"
                     radius="full"
@@ -197,7 +143,7 @@ export default function RootLayout({
                     登录
                   </Button>
                 </li>
-                <li className="flex justify-center items-center">
+                <li className="flex-normal">
                   <Button
                     className="bg-gradient-to-tr from-pink-500 to-yellow-500 text-white shadow-lg"
                     radius="full"
@@ -209,7 +155,7 @@ export default function RootLayout({
                 </li>
               </>
             )}
-            <li className="flex justify-center items-center cursor-pointer text-[#4E5358] hover:text-pink-500 p-4 roundedcursor-pointer transition-colors duration-[3000ms]">
+            <li className=" hover:text-pink-500 layout-style">
               {darkMode ? (
                 <FaRegMoon className="text-2xl" onClick={toggleDarkMode} />
               ) : (
@@ -219,25 +165,29 @@ export default function RootLayout({
           </ul>
         </nav>
         <main className=" mt-[50px]">{children}</main>
-        <LoginModal
-          isOpen={isLoginOpen}
-          onOpenChange={onLoginOpenChange}
-          onRegisterOpen={onRegisterOpen}
-          onSubmit={handleLoginSubmit}
-        />
-        <RegisterModal
-          isOpen={isRegisterOpen}
-          onOpenChange={onRegisterOpenChange}
-          onLoginOpen={onLoginOpen}
-          onSubmit={handleRegisterSubmit}
-        />
+        <Suspense fallback={LoadingFallback}>
+          <LoginModal
+            isOpen={isLoginOpen}
+            onOpenChange={onLoginOpenChange}
+            onRegisterOpen={onRegisterOpen}
+            onSubmit={(e) => handleLoginSubmit(e, login, onLoginOpenChange)}
+          />
+        </Suspense>
+        <Suspense fallback={LoadingFallback}>
+          <RegisterModal
+            isOpen={isRegisterOpen}
+            onOpenChange={onRegisterOpenChange}
+            onLoginOpen={onLoginOpen}
+            onSubmit={(e) => handleRegisterSubmit(e, onRegisterOpenChange)}
+          />
+        </Suspense>
         <div
-          className="fixed bottom-[20%] right-[2%] bg-[#C8C8C866] dark:bg-gray-900 w-[40px] h-[40px] flex justify-center items-center rounded-[8px] cursor-pointer hover:text-pink-500"
+          className="button-style bottom-[20%] dark:bg-gray-900 hover:text-pink-500"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         >
           <GoChevronUp className="text-2xl" />
         </div>
-        <div className="fixed bottom-[15%] right-[2%] bg-[#C8C8C866] dark:bg-gray-900 w-[40px] h-[40px] flex justify-center items-center rounded-[8px] cursor-pointer hover:text-pink-500">
+        <div className="button-style bottom-[15%] dark:bg-gray-900 hover:text-pink-500">
           {darkMode ? (
             <FaRegMoon className="text-2xl" onClick={toggleDarkMode} />
           ) : (
@@ -245,7 +195,7 @@ export default function RootLayout({
           )}
         </div>
         <div
-          className="fixed bottom-[10%] right-[2%] bg-[#C8C8C866] dark:bg-gray-900 w-[40px] h-[40px] flex justify-center items-center rounded-[8px] cursor-pointer hover:text-pink-500"
+          className="button-style bottom-[10%] dark:bg-gray-900 hover:text-pink-500"
           onClick={() =>
             window.scrollTo({
               top: document.documentElement.scrollHeight,

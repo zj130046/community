@@ -7,9 +7,9 @@ import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { Button } from "@heroui/react";
 import { RiEmotionLine } from "react-icons/ri";
-import useUserStore from "../app/store/userStore";
+import useUserStore from "../store/userStore";
 import { $getRoot, $getSelection, $isRangeSelection } from "lexical";
-import { emojiList } from "../app/store/message";
+import { emojiList } from "../store/message";
 
 const EmojiButton = () => {
   const [editor] = useLexicalComposerContext();

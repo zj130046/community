@@ -10,6 +10,7 @@ import dayjs from "dayjs";
 import DOMPurify from "dompurify";
 import { BiMessageDetail, BiLike } from "react-icons/bi";
 import { SearchResults } from "@/app/store/message";
+import Head from "next/head";
 
 const SearchDetails = () => {
   const { searchResults } = useSearchStore();
@@ -30,8 +31,12 @@ const SearchDetails = () => {
   };
 
   return (
-    <div className="flex max-w-[840px] m-auto items-center justify-center">
-      <Card className="p-[20px] w-full min-h-[500px] shadow-lg flex justify-start flex-col mb-[22px] dark:bg-gray-900 opacity-98">
+    <div className=" max-w-[840px] m-auto flex-normal">
+      <Head>
+        <title>这是悠哉社区搜索区</title>
+        <meta name="description" content="欢迎搜索" />
+      </Head>
+      <Card className="p-[20px] w-full min-h-[500px] shadow-lg flex justify-start flex-col mb-[22px] dark:bg-gray-900">
         <Tabs
           aria-label="Tabs colors"
           selectedKey={selected}

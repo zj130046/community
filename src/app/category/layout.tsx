@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { Card } from "@heroui/react";
-import RightCard from "../../components/rightcard";
+import RightCard from "../components/rightcard";
 import { usePathname } from "next/navigation";
-import Carousel from "../../components/carousel";
+import Carousel from "../components/carousel";
 import { navItems } from "../store/message";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
@@ -16,7 +16,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       <Carousel />
       <div className="w-full flex justify-between">
         <div className="flex flex-col max-w-[840px]">
-          <Card className="shadow-lg dark:bg-gray-900 opacity-98 mb-[20px]">
+          <Card className="shadow-lg dark:bg-gray-900 mb-[20px]">
             <ul className="h-[40px] p-[4px] flex justify-between items-center bg-[#F4F4F5]">
               {navItems.map((item, index) =>
                 pathname === item.href ||

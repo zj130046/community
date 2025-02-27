@@ -1,25 +1,24 @@
-import pool from "@/lib/db"; // 引入数据库连接池
+import pool from "@/lib/db";
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken"; // 引入 JWT 库
+import jwt from "jsonwebtoken";
 
-// 自动生成slug
 function generateSlug(title: string): string {
   const slug = title
     .toLowerCase()
     .replace(/\s+/g, "-")
     .replace(/[^\w-]/g, "");
-  return `${slug}-${Date.now()}`; // 加上时间戳确保 slug 唯一
+  return `${slug}-${Date.now()}`;
 }
 
 function getUserIdFromRequest(request: Request): number | null {
   const authHeader = request.headers.get("Authorization");
-  console.log("Received Authorization header:", authHeader); // 记录头信息，帮助调试
+  console.log("Received Authorization header:", authHeader);
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     console.error("没有提供有效的 token");
-    return null; // 返回 null 如果没有提供 token
+    return null;
   }
 
-  const token = authHeader.split(" ")[1]; // 获取 token
+  const token = authHeader.split(" ")[1];
   try {
     const secret = process.env.JWT_SECRET;
     if (!secret) {

@@ -2,7 +2,6 @@ import pool from "@/lib/db"; // 引入数据库连接池
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken"; // 引入 JWT 库
 
-// 自动生成 slug
 function generateSlug(title: string): string {
   const slug = title
     .toLowerCase()

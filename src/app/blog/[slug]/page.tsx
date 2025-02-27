@@ -1,14 +1,15 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import DOMPurify from "dompurify";
-import RightCard from "../../../components/rightcard";
 import { CircularProgress, Card } from "@heroui/react";
 import { Image } from "@heroui/react";
 import dayjs from "dayjs";
 import { Blog } from "@/app/store/message";
 import { BiMessageDetail, BiLike } from "react-icons/bi";
+
+const MessageCard = lazy(() => import("@/app/components/messagecard"));
 
 const BlogDetails = () => {
   const { slug } = useParams();
@@ -41,9 +42,9 @@ const BlogDetails = () => {
   }
 
   return (
-    <div className="flex w-[1150px] m-auto items-start justify-between">
+    <div className="flex max-w-[1040px] m-auto items-start justify-between">
       <div>
-        <Card className="p-[20px] w-[840px] shadow-lg flex justify-center flex-col mb-[22px] dark:bg-gray-900 opacity-98">
+        <Card className="p-[20px] max-w-[730px] shadow-lg flex justify-center flex-col mb-[22px] dark:bg-gray-900">
           <div className="pt-6 pb-6 border-b-1">
             <div className="flex justify-center flex-col">
               <div className="flex">
@@ -98,7 +99,9 @@ const BlogDetails = () => {
           </div>
         </Card>
       </div>
-      <RightCard></RightCard>
+      <Suspense fallback="<div>Loading...</div>">
+        <MessageCard />
+      </Suspense>
     </div>
   );
 };

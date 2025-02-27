@@ -9,7 +9,6 @@ interface Params {
 export async function GET(request: Request, { params }: Params) {
   const { category } = await params;
   try {
-    // 添加 is_published = true 条件来过滤已发布的文章
     const result = await pool.query(
       "SELECT * FROM articles WHERE category = $1 AND is_published = true ORDER BY created_at DESC",
       [category]

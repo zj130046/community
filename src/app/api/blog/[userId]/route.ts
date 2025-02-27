@@ -12,14 +12,12 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
-
     const query = `
             SELECT * FROM blogs
             WHERE user_id = $1
             ORDER BY created_at DESC;
         `;
 
-    // 执行 SQL 查询
     const result = await pool.query(query, [userId]);
 
     const blogs = result.rows;

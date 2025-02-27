@@ -1,28 +1,22 @@
 "use client";
 
 import { Button, Card, Select, SelectItem, Input } from "@heroui/react";
-
 import { useDisclosure } from "@heroui/react";
-
 import useUserStore from "../../app/store/userStore";
 import { PiUserCirclePlus } from "react-icons/pi";
 import { IoMdPaperPlane } from "react-icons/io";
 import { MdOutlineDataSaverOff, MdLogin } from "react-icons/md";
 import { IoPricetagOutline } from "react-icons/io5";
 import { HiOutlineDocumentDuplicate } from "react-icons/hi2";
-import MyEditor from "@/components/editor";
-import { useState, useEffect } from "react";
+import MyEditor from "@/app/components/editor";
+import { useState, useEffect, lazy, Suspense } from "react";
 import Image from "next/image";
-import dynamic from "next/dynamic";
 import { categories } from "../store/message";
+import { handleLoginSubmit, handleRegisterSubmit } from "../utils/page";
+import { uploadFile } from "../utils/page";
 
-const LoginModal = dynamic(() => import("../../components/LoginModal"), {
-  ssr: false,
-});
-
-const RegisterModal = dynamic(() => import("../../components/RegisterModal"), {
-  ssr: false,
-});
+const LoginModal = lazy(() => import("../components/LoginModal"));
+const RegisterModal = lazy(() => import("../components/RegisterModal"));
 
 export default function About() {
   const {
@@ -45,67 +39,6 @@ export default function About() {
   const [img, setImg] = useState("");
   const [file, setFile] = useState(null);
 
-  const handleLoginSubmit = async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const formData = new FormData(form);
-    const formDataObj = {};
-    formData.forEach((value, key) => {
-      formDataObj[key] = value;
-    });
-
-    try {
-      const response = await fetch("/api/user/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formDataObj),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        console.log("登录成功:", data);
-        login(data);
-        onLoginOpenChange(false);
-      } else {
-        alert(data.message);
-      }
-    } catch (error) {
-      console.error("登录请求出错:", error);
-    }
-  };
-
-  const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const formData = new FormData(form);
-    const formDataObj = {};
-    formData.forEach((value, key) => {
-      formDataObj[key] = value;
-    });
-
-    try {
-      const response = await fetch("/api/user/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formDataObj),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        console.log("注册成功:", data);
-        onRegisterOpenChange(false);
-      } else {
-        console.error("注册失败:", data.message);
-      }
-    } catch (error) {
-      console.error("注册请求出错:", error);
-    }
-  };
-
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -114,36 +47,11 @@ export default function About() {
     }
   };
 
-  const uploadFile = async () => {
-    if (!file) {
-      alert("请先选择文件");
-      return null;
-    }
-    const formData = new FormData();
-    formData.append("file", file);
-    try {
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const result = await response.json();
-      if (response.ok) {
-        return result.url; // 返回文件 URL
-      } else {
-        console.error("文件上传失败:", result.message);
-        return null;
-      }
-    } catch (error) {
-      console.error("文件上传出错:", error);
-      return null;
-    }
-  };
-
   const handleSubmit = async () => {
     let imageUrl = img;
     // 如果用户上传了新文件，则上传文件并获取新的 URL
     if (file) {
-      imageUrl = await uploadFile();
+      imageUrl = await uploadFile(file);
       if (!imageUrl) return;
     }
     // 如果既没有新文件，也没有已有图片 URL，提示用户选择文件
@@ -207,7 +115,7 @@ export default function About() {
   const handleDraft = async () => {
     let imageUrl = img; // 使用当前图片 URL
     if (file) {
-      imageUrl = await uploadFile();
+      imageUrl = await uploadFile(file);
       if (!imageUrl) return; // 如果上传失败，直接返回
     }
 
@@ -239,13 +147,13 @@ export default function About() {
   };
 
   const loginCard = (
-    <Card className="h-[500px] shadow-lg w-[840px] mb-[20px] dark:bg-gray-900 p-[22px]">
+    <Card className="h-[500px] shadow-lg max-w-[840px] mb-[20px] dark:bg-gray-900 p-[22px]">
       <div className="flex flex-col items-center m-auto">
         <p className="mt-[20px] mb-[20px] text-[16.8px] text-[#B1B1B1] text-center">
           你好,请先登录！
         </p>
         <div className="flex gap-2 mb-[20px]">
-          <li className="flex justify-center items-center">
+          <li className="flex-normal">
             <Button
               radius="full"
               size="sm"
@@ -256,7 +164,7 @@ export default function About() {
               <p>登录</p>
             </Button>
           </li>
-          <li className="flex justify-center items-center">
+          <li className="flex-normal">
             <Button
               radius="full"
               size="sm"
@@ -273,7 +181,7 @@ export default function About() {
   );
 
   const loggedInCard = (
-    <Card className="min-h-[500px] w-[840px] flex gap-5 shadow-lg mb-[20px] dark:bg-gray-900 p-[22px]">
+    <Card className="min-h-[500px] max-w-[840px] flex gap-5 shadow-lg mb-[20px] dark:bg-gray-900 p-[22px]">
       <Input
         name="title"
         label="标题"
@@ -296,7 +204,7 @@ export default function About() {
       />
       <label
         htmlFor="coverUpload"
-        className="relative flex justify-center items-center h-32 w-full border-2 border-dashed border-gray-300 rounded-md cursor-pointer"
+        className="relative flex-normal h-32 w-full border-2 border-dashed border-gray-300 rounded-md cursor-pointer"
       >
         <input
           type="file"
@@ -356,18 +264,24 @@ export default function About() {
   return (
     <div className="flex max-w-[1150px] m-auto justify-between">
       {user?.username ? loggedInCard : loginCard}
-      <LoginModal
-        isOpen={isLoginOpen}
-        onOpenChange={onLoginOpenChange}
-        onRegisterOpen={onRegisterOpen}
-        onSubmit={handleLoginSubmit}
-      />
-      <RegisterModal
-        isOpen={isRegisterOpen}
-        onOpenChange={onRegisterOpenChange}
-        onLoginOpen={onLoginOpen}
-        onSubmit={handleRegisterSubmit}
-      />
+      <Suspense fallback="<div>Load...</div>">
+        <LoginModal
+          isOpen={isLoginOpen}
+          onOpenChange={onLoginOpenChange}
+          onRegisterOpen={onRegisterOpen}
+          onSubmit={(e) => handleLoginSubmit(e, login, onLoginOpenChange)}
+        />
+      </Suspense>
+
+      <Suspense fallback="<div>Load...</div>">
+        <RegisterModal
+          isOpen={isRegisterOpen}
+          onOpenChange={onRegisterOpenChange}
+          onLoginOpen={onLoginOpen}
+          onSubmit={(e) => handleRegisterSubmit(e, onRegisterOpenChange)}
+        />
+      </Suspense>
+
       <Card className="w-[280px] text-[14px] h-[290px] p-[20px]">
         <div className="mb-[14px]">
           <Select

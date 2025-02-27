@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { LiaUserSolid } from "react-icons/lia";
 import { GrPowerShutdown } from "react-icons/gr";
-import useUserStore from "../app/store/userStore";
+import useUserStore from "../store/userStore";
 import {
   Modal,
   ModalContent,
@@ -45,7 +45,7 @@ const Dropdown = () => {
   return (
     <>
       <div
-        className="relative flex justify-center items-center "
+        className="relative flex-normal "
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
@@ -75,13 +75,13 @@ const Dropdown = () => {
           >
             <Link
               href="/user"
-              className="p-2 flex cursor-pointer justify-center text-[14px] items-center hover:bg-gray-100  hover:text-sky-400"
+              className="p-2  cursor-pointer flex-normal text-[14px]  hover:bg-gray-100  hover:text-sky-400"
             >
               <LiaUserSolid className="mr-[2px]" />
               <p>用户中心</p>
             </Link>
             <div
-              className="p-2 flex cursor-pointer justify-center items-center text-[14px] hover:bg-gray-100  hover:text-sky-400"
+              className="p-2 cursor-pointer flex-normal text-[14px] hover:bg-gray-100  hover:text-sky-400"
               onClick={onOpen}
             >
               <GrPowerShutdown className="mr-[2px]" />

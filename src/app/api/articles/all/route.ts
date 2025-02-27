@@ -3,7 +3,6 @@ import pool from "../../../../lib/db";
 
 export async function GET() {
   try {
-    // 修改查询，加入过滤条件 `is_published = true`
     const [articleResult, countResult, categoryCountResult, tagCountResult] =
       await Promise.all([
         pool.query(
